@@ -9,5 +9,19 @@
         {
             return "-" + operand();
         }
+
+        public override object eval(Environment env)
+        {
+            var ne = this;
+            object v = ne.operand().eval(env);
+            if(v is int) 
+            {
+                return -(int)v;
+            }
+            else 
+            {
+                throw new GuaException("bad type for -", ne);
+            }
+        }
     }
 }

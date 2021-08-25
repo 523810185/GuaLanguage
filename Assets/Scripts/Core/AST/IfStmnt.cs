@@ -11,5 +11,20 @@
         {
             return string.Format("(if {0} {1} else {2})", condition(), thenBlock(), elseBlock());
         }
+
+        public override object eval(Environment env)
+        {
+            var ifStmnt = this;
+            object c = ifStmnt.condition().eval(env);
+            if(c is int && (int)c != FALSE)
+            {
+                return ifStmnt.thenBlock().eval(env);
+            }
+            else 
+            {
+                var b = ifStmnt.elseBlock();
+                return b == null ? 0 : b.eval(env);
+            }
+        }
     }
 }

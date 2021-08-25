@@ -5,5 +5,10 @@
     {
         public NumberLiteral(Token t) : base(t) {}
         public int value() { return token().getNumber(); }
+
+        public override object eval(Environment env)
+        {
+            return value();
+        }
     }
 }

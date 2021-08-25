@@ -29,5 +29,10 @@
             }
             return null;
         }
+
+        public override object eval(Environment env)
+        {
+            throw new GuaException("not imp eval " + ToString(), this);
+        }
     }
 }

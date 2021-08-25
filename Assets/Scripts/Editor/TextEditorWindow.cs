@@ -5,6 +5,8 @@ using UnityEditor;
 using System.Reflection;
 using System;
 using GuaLanguage;
+using GuaLanguage.AST;
+using GuaLanguage;
 
 public class TextEditorWindow : EditorWindow
 {
@@ -50,16 +52,32 @@ public class TextEditorWindow : EditorWindow
         {
             Lexer l = new Lexer(m_sContent);
 
+            // 词法分析器
             // for(Token t; (t = l.read()) != Token.EOF; )
             // {
             //     Debug.Log("=> " + t.getText());
             // }
 
-            BasicParser bp = new BasicParser();
-            while(l.peek(0) != Token.EOF)
+            // 语法分析器
+            // BasicParser bp = new BasicParser();
+            // while(l.peek(0) != Token.EOF)
+            // {
+            //     var ast = bp.parse(l);
+            //     Debug.Log("=> " + ast.ToString() + " " + ast.GetType());
+            // }
+
+            // 解释器
+            var bp = new BasicParser();
+            var env = new BasicEnv();
+            while(l.peek(0) != Token.EOF) 
             {
-                var ast = bp.parse(l);
-                Debug.Log("=> " + ast.ToString() + " " + ast.GetType());
+                var t = bp.parse(l);
+                if(!(t is NullStmnt))
+                {
+                    // Debug.Log(" bef eval = " + t.GetType());
+                    var r = t.eval(env);
+                    Debug.Log("=> " + r);
+                }
             }
         }
     }

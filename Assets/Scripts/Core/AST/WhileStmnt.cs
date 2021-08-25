@@ -10,5 +10,23 @@
         {
             return string.Format("(while {0} {1} )", condition(), body());
         }
+
+        public override object eval(Environment env)
+        {
+            var ws = this;
+            object result = 0;
+            for(;;) 
+            {
+                object c = ws.condition().eval(env);
+                if(c is int && (int)c == FALSE) 
+                {
+                    return result;
+                }
+                else 
+                {
+                    result = ws.body().eval(env);
+                }
+            }
+        }
     }
 }

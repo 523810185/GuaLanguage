@@ -9,5 +9,9 @@
         public abstract string location();
         public IEnumerator<ASTree> GetEnumerator() { return children(); }
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
+
+        public static readonly int TRUE = 1;
+        public static readonly int FALSE = 0;
+        public abstract object eval(Environment env);
     }
 }

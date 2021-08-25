@@ -13,5 +13,10 @@
         public override String ToString() { return m_token.getText(); }
         public override String location() { return "at line " + m_token.getLineNumber(); }
         public Token token() { return m_token; }
+
+        public override object eval(Environment env)
+        {
+            throw new GuaException("not imp eval " + ToString(), this);
+        }
     }
 }

@@ -56,15 +56,10 @@ public class TextEditorWindow : EditorWindow
             // }
 
             BasicParser bp = new BasicParser();
-            int _ = 0;
             while(l.peek(0) != Token.EOF)
             {
-                if(_ ++ > 10) 
-                {
-                    break;
-                }
                 var ast = bp.parse(l);
-                Debug.Log("=> " + ast.ToString());
+                Debug.Log("=> " + ast.ToString() + " " + ast.GetType());
             }
         }
     }

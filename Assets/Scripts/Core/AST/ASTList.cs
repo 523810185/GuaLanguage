@@ -10,7 +10,7 @@
         public override ASTree child(int i) { return m_children[i]; }
         public override int numChildren() { return m_children.Count; }
         public override IEnumerator<ASTree> children() { return m_children.GetEnumerator(); }
-        public String toString() {
+        public override string ToString() {
             StringBuilder builder = new StringBuilder();
             builder.Append('(');
             String sep = "";

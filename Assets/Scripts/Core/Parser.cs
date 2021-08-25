@@ -265,6 +265,8 @@
                 {
                     right = doShift(lexer, right, prec.value);
                 }
+
+                res.Add(right);
             }
             private ASTree doShift(Lexer lexer, ASTree left, int prec) 
             {
@@ -337,7 +339,7 @@
                 //     return null;
                 // }
 
-                var f = get(typeOfT, typeof(List<>)); // TODO.. 类型有问题？
+                var f = get(typeOfT, typeof(List<ASTree>)); // TODO.. 类型有问题？
                 if(f == null) 
                 {
                     f = (arg) => 

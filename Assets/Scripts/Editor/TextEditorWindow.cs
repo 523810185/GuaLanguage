@@ -204,18 +204,6 @@ public class TextEditorWindow : EditorWindow
             // 附加空格
             // if(lastToken == null || lastToken.getLineNumber() != nowToken.getLineNumber()) 
             {
-                if(nowToken is Lexer.CommentToken) 
-                {
-                    int xxxx = 55;
-                }
-                if(nowToken.getText().StartsWith("// 测试"))
-                {
-                    int x = 5;
-                    int a1 = nowToken.getST();
-                    int a2 = lastToken.getLineNumber();
-                    int a3 = nowToken.getLineNumber();
-                    int a4 = lastToken.getED();
-                }
                 int cnt = nowToken.getST() - ((lastToken == null || lastToken.getLineNumber() != nowToken.getLineNumber()) ? 0 : lastToken.getED() + 1);
                 for(int _=0;_<cnt;_++) 
                 {

@@ -18,9 +18,26 @@
         }
         public object get(string name) 
         {
+            if(name == null) 
+            {
+                return null;
+            }
+            
             object ans;
             values.TryGetValue(name, out ans);
             return ans;
+        }
+
+        public void setOuter(Environment e) { throw new GuaException(" not imp "); }
+
+        public void putNew(string name, object value) 
+        {
+            throw new GuaException(" not imp ");
+        }
+
+        public Environment where(string name) 
+        {
+            throw new GuaException(" not imp ");
         }
     }
 }

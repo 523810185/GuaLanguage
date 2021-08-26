@@ -7,19 +7,19 @@
     using static GuaLanguage.Parser;
     public class BasicParser 
     {
-        HashSet<string> reserved = new HashSet<string>();
-        Operators operators = new Operators();
-        Parser expr0;
-        Parser primary;
-        Parser factor;
-        Parser expr;
+        protected HashSet<string> reserved = new HashSet<string>();
+        protected Operators operators = new Operators();
+        protected Parser expr0;
+        protected Parser primary;
+        protected Parser factor;
+        protected Parser expr;
 
-        Parser statement0;
-        Parser block;
-        Parser simple;
-        Parser statement;
+        protected Parser statement0;
+        protected Parser block;
+        protected Parser simple;
+        protected Parser statement;
 
-        Parser program;
+        protected Parser program;
 
         public BasicParser() 
         {
@@ -56,6 +56,8 @@
             operators.add("==", 2, Operators.LEFT);
             operators.add(">", 2, Operators.LEFT);
             operators.add("<", 2, Operators.LEFT);
+            operators.add("<=", 2, Operators.LEFT);
+            operators.add(">=", 2, Operators.LEFT);
             operators.add("+", 3, Operators.LEFT);
             operators.add("-", 3, Operators.LEFT);
             operators.add("*", 4, Operators.LEFT);

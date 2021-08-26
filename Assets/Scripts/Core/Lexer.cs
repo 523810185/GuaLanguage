@@ -9,8 +9,9 @@
     {
         /* a = "a\\aa"; b = "\"" */
         public static String regexPat
-                = "\\s*((//.*)|([0-9]+)|"
-                    + "(\"(\\\\\"|[^\"])*\")"
+                = "\\s*((//.*)"
+                    + "|([0-9]+)"
+                    + "|(\"(\\\\\"|[^\"])*\")"
                     + "|[A-Z_a-z][A-Z_a-z0-9]*|==|<=|>=|&&|\\|\\||[!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~])?";
         private List<Token> queue = new List<Token>();
         private bool hasMore;
@@ -24,6 +25,13 @@
             m_sText = text;
             m_iTextPos = 0;
             m_iLineNum = 0;
+        }
+
+        private bool m_bHighlightMode = false;
+        public Lexer SetHighlightMode(bool val) 
+        {
+            m_bHighlightMode = val;
+            return this;
         }
 
         public Token read() 
@@ -104,7 +112,7 @@
                 matcher = matcher.NextMatch();
             }
 
-            queue.Add(new IdToken(lineNo, Token.EOL));
+            queue.Add(new IdToken(lineNo, line.Length, line.Length, Token.EOL));
 
             // 显示所有Token
             // foreach (var item in queue)
@@ -124,13 +132,34 @@
             {
                 if (GroupIsNull(matcher.Groups[2])) { // if not a comment
                     Token token;
+                    int st = m.Index;
+                    int ed = st + m.Length - 1;
                     if (GroupIsNull(matcher.Groups[3]) == false)
-                        token = new NumToken(lineNo, int.Parse(m.ToString()));
+                        token = new NumToken(lineNo, st, ed, int.Parse(m.ToString()));
                     else if (GroupIsNull(matcher.Groups[4]) == false)
-                        token = new StrToken(lineNo, toStringLiteral(m.ToString()));
+                        token = new StrToken(lineNo, st, ed, m_bHighlightMode ? m.ToString() : toStringLiteral(m.ToString()));
                     else
-                        token = new IdToken(lineNo, m.ToString());
+                    {
+                        var str = m.ToString();
+                        // TODO.. 符号集专门写在一个地方
+                        if(str == "+" || str == "-" || str == "*" || str == "/") 
+                        {
+                            token = new OpToken(lineNo, st, ed, str);
+                        }
+                        else 
+                        {
+                            token = new IdToken(lineNo, st, ed, str);
+                        }
+                    }
                     queue.Add(token);
+                }
+                else
+                {
+                    if(m_bHighlightMode) 
+                    {
+                        var commentGroup = matcher.Groups[2];
+                        queue.Add(new CommentToken(lineNo, commentGroup.Index, commentGroup.Index + commentGroup.Length - 1, commentGroup.ToString()));
+                    }
                 }
             }
         } 
@@ -154,10 +183,10 @@
             return sb.ToString();
         }
 
-        protected class NumToken : Token {
+        public class NumToken : Token {
             private int value;
 
-            public NumToken(int line, int v) : base(line) {
+            public NumToken(int line, int st, int ed, int v) : base(line, st, ed) {
                 value = v;
             }
             public override bool isNumber() { return true; }
@@ -165,22 +194,38 @@
             public override int getNumber() { return value; }
         }
 
-        protected class IdToken : Token {
+        public class IdToken : Token {
             private string text; 
-            public IdToken(int line, string id) : base(line) {
+            public IdToken(int line, int st, int ed, string id) : base(line, st, ed) {
                 text = id;
             }
             public override bool isIdentifier() { return true; }
             public override string getText() { return text; }
         }
 
-        protected class StrToken : Token {
+        public class StrToken : Token {
             private string literal;
-            public StrToken(int line, string str) :base(line) {
+            public StrToken(int line, int st, int ed, string str) :base(line, st, ed) {
                 literal = str;
             }
             public override bool isString() { return true; }
             public override string getText() { return literal; }
+        }
+
+        public class OpToken : IdToken 
+        {
+            public OpToken(int line, int st, int ed, string id) : base(line, st, ed, id) 
+            {
+            }
+        }
+
+        public class CommentToken : Token 
+        {
+            private string comment;
+            public CommentToken(int line, int st, int ed, string str) :base(line, st, ed) {
+                comment = str;
+            }
+            public override string getText() { return comment; }
         }
 
         private string readLineInner()

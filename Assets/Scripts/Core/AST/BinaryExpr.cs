@@ -1,6 +1,7 @@
 ﻿namespace GuaLanguage.AST
 {
     using System.Collections.Generic;
+    using static GuaObject;
     public class BinaryExpr : ASTList 
     {
         public BinaryExpr(List<ASTree> c) : base(c) {}
@@ -29,6 +30,42 @@
         {
             var be = this;
             var l = be.left();
+            // 数组赋值 ==> a[index] = b;
+            if(l is PrimaryExpr) 
+            {
+                var p = l as PrimaryExpr;
+                if(p.hasPostfix(0) && p.postfix(0) is ArrayRef) 
+                {
+                    object a = p.evalSubExpr(env, 1);
+                    if(a is object[]) 
+                    {
+                        ArrayRef aref = p.postfix(0) as ArrayRef;
+                        object _index = aref.index().eval(env);
+                        if(_index is int) 
+                        {
+                            ((object[])a)[(int)_index] = rvalue;
+                            return rvalue;
+                        }
+                    }
+                    throw new GuaException("bad array access", this);
+                }
+            }
+
+            // 左边带有 "." ==> a.x = b;
+            if(l is PrimaryExpr) 
+            {
+                var p = l as PrimaryExpr;
+                if(p.hasPostfix(0) && p.postfix(0) is Dot) 
+                {
+                    object t = p.evalSubExpr(env, 1);
+                    if(t is GuaObject) 
+                    {
+                        return setField(t as GuaObject, p.postfix(0) as Dot, rvalue);
+                    }
+                }
+            }
+
+            // 单纯赋值  ==> a = b;
             if(l is Name) 
             {
                 env.put((l as Name).name(), rvalue);
@@ -40,18 +77,40 @@
             }
         }
 
+        protected object setField(GuaObject obj, Dot expr, object rvalue) 
+        {
+            string name = expr.name();
+            try 
+            {
+                obj.write(name, rvalue);
+                return rvalue;
+            }
+            catch (AccessException e) 
+            {
+                throw new GuaException("bad member access " + location() + ": " + name);
+            }
+        }
+
         protected object computeOp(object left, string op, object right)
         {
             var be = this;
-            if(left is int && right is int) 
+            if((left is int || left is float || left is double) && (right is int || right is float || right is double)) 
             {
-                return be.computeNumber((int)left, op, (int)right);
+                if(left is int && right is int) 
+                {
+                    return be.computeNumberInt((int)left, op, (int)right);
+                }
+                
+                float _l = left is int ? (int)left : left is float ? (float)left : (float)((double)left);
+                float _r = right is int ? (int)right : right is float ? (float)right : (float)((double)right);
+                return be.computeNumberFloat(_l, op, _r);
             }
             else
             {
                 if(op == "+") 
                 {
-                    return (string)left + (string)right;
+                    // return (string)left + (string)right;
+                    return left.ToString() + right.ToString();
                 }
                 else if(op == "==")
                 {
@@ -71,7 +130,7 @@
             }
         }
 
-        protected object computeNumber(int left, string op, int right) 
+        protected object computeNumberInt(int left, string op, int right) 
         {
             var be = this;
             int a = left;
@@ -107,6 +166,65 @@
             else if(op == "<") 
             {
                 return a < b ? TRUE : FALSE;
+            }
+            else if(op == "<=") 
+            {
+                return a <= b ? TRUE : FALSE;
+            }
+            else if(op == ">=") 
+            {
+                return a >= b ? TRUE : FALSE;
+            }
+            else 
+            {
+                throw new GuaException("bad operator", be);
+            } 
+        }
+
+        protected object computeNumberFloat(float left, string op, float right) 
+        {
+            var be = this;
+            float a = left;
+            float b = right;
+            if(op == "+") 
+            {
+                return a + b;
+            }
+            else if(op == "-")
+            {
+                return a - b;
+            }
+            else if(op == "*")
+            {
+                return a * b;
+            }
+            else if(op == "/")
+            {
+                return a / b;
+            }
+            else if(op == "%") 
+            {
+                return a % b;
+            }
+            else if(op == "==")
+            {
+                return a == b ? TRUE : FALSE;
+            }
+            else if(op == ">") 
+            {
+                return a > b ? TRUE : FALSE;
+            }
+            else if(op == "<") 
+            {
+                return a < b ? TRUE : FALSE;
+            }
+            else if(op == "<=") 
+            {
+                return a <= b ? TRUE : FALSE;
+            }
+            else if(op == ">=") 
+            {
+                return a >= b ? TRUE : FALSE;
             }
             else 
             {

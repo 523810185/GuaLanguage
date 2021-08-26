@@ -2,14 +2,20 @@
 {
     public class Token 
     {
-        public static readonly Token EOF = new Token(-1); // end of file
+        public static readonly Token EOF = new Token(-1, -1, -1); // end of file
         public static readonly string EOL = "\\n";          // end of line 
         private int lineNumber;
 
-        protected Token(int line) {
+        private int st, ed;
+
+        protected Token(int line, int st, int ed) {
             lineNumber = line;
+            this.st = st;
+            this.ed = ed;
         }
         public virtual int getLineNumber() { return lineNumber; }
+        public virtual int getST() { return st; }
+        public virtual int getED() { return ed; }
         public virtual bool isIdentifier() { return false; }
         public virtual bool isNumber() { return false; }
         public virtual bool isString() { return false; }

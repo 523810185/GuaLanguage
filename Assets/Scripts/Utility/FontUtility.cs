@@ -23,7 +23,7 @@
             {
                 font.GetCharacterInfo(strItem, out charInfo);
                 if(charInfo.advance == 0)
-                    width += font.fontSize;
+                    {}// width += font.fontSize;
                 else
                     width += charInfo.advance;
             }

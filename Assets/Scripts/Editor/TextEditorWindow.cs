@@ -38,6 +38,10 @@ public class TextEditorWindow : EditorWindow
 
     }
 
+    private void Update() {
+        Repaint();    
+    }
+
     private Vector2 scrollPosition;
     private string m_sLastText = ""; // 上次的输入文本，带有富文本信息
     private string m_sContent = ""; // 源文本

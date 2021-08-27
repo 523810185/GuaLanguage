@@ -7,6 +7,8 @@ using System;
 using GuaLanguage;
 using GuaLanguage.AST;
 using System.Text;
+using System.Text.RegularExpressions;
+using GuaLanguage.Utility;
 
 public class TextEditorWindow : EditorWindow
 {
@@ -37,9 +39,90 @@ public class TextEditorWindow : EditorWindow
     }
 
     private Vector2 scrollPosition;
-    private string m_sContent = "";
+    private string m_sLastText = ""; // 上次的输入文本，带有富文本信息
+    private string m_sContent = ""; // 源文本
+    private Dictionary<int, string> m_mapLineStrInfo = new Dictionary<int, string>();
+    private int m_iNowRow = -1, m_iNowCow = -1; 
     void OnGUI() 
     {
+        var e = Event.current;
+        if(e.type == EventType.MouseUp) 
+        {
+            Debug.Log(" mouse pos " + e.mousePosition);
+            // if()
+            // e.Use();
+            Debug.Log(" ?? " + FontUtility.GetStringWidthByFont(EditorStyles.standardFont, "// p3d.p"));
+            var _pos = e.mousePosition;
+            int _nowLine = Mathf.FloorToInt(_pos.y / FontUtility.LINE_HEIGHT) + 1;
+            int _nowCow = -1;
+            {
+                string _str = null;
+                m_mapLineStrInfo.TryGetValue(_nowLine, out _str);
+                if(_str != null)
+                {
+                    int _l = 0;
+                    int _r = _str.Length - 1;
+                    while(_l <= _r) 
+                    {
+                        int _mid = (_l + _r) / 2;
+                        if(FontUtility.GetStringWidthByFont(EditorStyles.standardFont, _str.Substring(0, _mid + 1)) <= _pos.x)
+                        {
+                            _nowCow = _mid;
+                            _l = _mid + 1;
+                        }
+                        else 
+                        {
+                            _r = _mid - 1;
+                        }
+                    }
+
+                    Debug.Log(" 当前字符为 " + _str[_nowCow]);
+                }
+            }
+            m_iNowRow = _nowLine;
+            m_iNowCow = _nowCow;
+        }
+        else if(e.type == EventType.KeyUp) 
+        {
+            if(e.keyCode == KeyCode.Backspace) 
+            {
+                // 删除
+                if(m_iNowRow != -1 && m_iNowCow != -1)
+                {
+                    var _str = m_mapLineStrInfo[m_iNowRow];
+                    m_mapLineStrInfo[m_iNowRow] = _str.Substring(0, m_iNowCow) +  _str.Substring(m_iNowCow + 1, _str.Length - 1 - m_iNowCow);
+                    m_iNowCow--;
+                    m_sRichTextBuilder.Clear();
+                    foreach (var v in m_mapLineStrInfo.Values)
+                    {
+                        m_sRichTextBuilder.Append(v);
+                    }
+                    m_sContent = m_sRichTextBuilder.ToString();
+                }
+            }
+            else 
+            {
+                if(m_iNowRow != -1 && m_iNowCow != -1)
+                {
+                    var _str = m_mapLineStrInfo[m_iNowRow];
+                    m_mapLineStrInfo[m_iNowRow] = _str.Substring(0, m_iNowCow + 1) + e.keyCode.ToString().ToLower() + _str.Substring(m_iNowCow + 1, _str.Length - 1 - m_iNowCow);
+                    m_iNowCow++;
+                    m_sRichTextBuilder.Clear();
+                    foreach (var v in m_mapLineStrInfo.Values)
+                    {
+                        m_sRichTextBuilder.Append(v);
+                    }
+                    m_sContent = m_sRichTextBuilder.ToString();
+                }
+            }
+        }
+
+        if(m_iNowRow != -1 && m_iNowCow != -1)
+        {
+            var rect = new Rect(FontUtility.GetStringWidthByFont(EditorStyles.standardFont, m_mapLineStrInfo[m_iNowRow].Substring(0, m_iNowCow + 1)), (m_iNowRow - 1) * FontUtility.LINE_HEIGHT + 3, 2, FontUtility.LINE_HEIGHT);
+            EditorGUI.DrawRect(rect, Color.white);
+        }
+
         if (EditorGUI_ScrollableTextAreaInternal == null)
         {
             EditorGUILayout.LabelField("Cannot draw TextArea because Unity's internal API has changed.");
@@ -52,11 +135,35 @@ public class TextEditorWindow : EditorWindow
         {
             var _style = EditorStyles.textArea;
             _style.richText = true;
-            GUI.Label(position, m_sHighlightText, _style);
+            GUI.Label(position, m_sHighlightText = GetHighlightText(), _style);
         }
         else 
         {
-            m_sContent = EditorGUI_ScrollableTextAreaInternal(position, m_sContent, ref this.scrollPosition, EditorStyles.textArea);
+            var _style = EditorStyles.textArea; _style.richText = true;
+            EditorGUI.BeginChangeCheck();
+            m_sContent = EditorGUI_ScrollableTextAreaInternal(position, m_sContent, ref this.scrollPosition, _style);
+            bool changed = EditorGUI.EndChangeCheck();
+            // m_sContent = Regex.Replace(m_sLastText, "(<color=#[0-9a-zA-Z][0-9a-zA-Z][0-9a-zA-Z][0-9a-zA-Z][0-9a-zA-Z][0-9a-zA-Z]>)|</color>", "");
+            if(changed) 
+            {
+                bool more = m_sContent.Length > m_sLastText.Length ? true : false;
+                Debug.Log(" changed! " + more);
+                m_mapLineStrInfo.Clear();
+                int _st = 0;
+                // int _ed = 0;
+                int lineNum = 1;
+                for(int i=0;i<m_sContent.Length;i++) 
+                {
+                    char nowC = m_sContent[i];
+                    if(nowC == '\n') 
+                    {
+                        m_mapLineStrInfo.Add(lineNum, m_sContent.Substring(_st, i - _st + 1));
+                        _st = i + 1;
+                        lineNum++;
+                    }
+                }
+                m_mapLineStrInfo.Add(lineNum, m_sContent.Substring(_st, m_sContent.Length - 1 - _st + 1));
+            }
         }
 
         if(GUILayout.Button("解释"))
@@ -227,7 +334,7 @@ public class TextEditorWindow : EditorWindow
             {
                 Colorize(text, FunctionCallColor);
             }
-            else if(text == "{" || text == "}" || text == "(" || text == ")" || text == "[" || text == "]" || text == "+" || text == "-" || text == "*" || text == "/" || text == "=" || text == "==" || text == "<=" || text == ">=" || text == ";" || text == "," || text == ".") 
+            else if(text == "{" || text == "}" || text == "(" || text == ")" || text == "[" || text == "]" || text == "+" || text == "-" || text == "*" || text == "/" || text == "=" || text == "==" || text == "<" || text == ">" || text == "<=" || text == ">=" || text == ";" || text == "," || text == ".") 
             {
                 Colorize(text, Color.white);
             }

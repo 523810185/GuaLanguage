@@ -14,7 +14,9 @@
         public ClassParser() : base()
         {
             member = rule().or(def, simple);
-            class_body = rule(typeof(ClassBody)).sep("{").option(member)
+            class_body = rule(typeof(ClassBody))
+                .option(repeatEmptyLine)
+                .sep("{").option(member)
                 .repeat(rule().sep(";", Token.EOL).option(member))
                 .sep("}");
             defclass = rule(typeof(ClassStmnt)).sep("class").identifier(reserved)

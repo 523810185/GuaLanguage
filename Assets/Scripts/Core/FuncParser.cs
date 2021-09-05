@@ -19,7 +19,7 @@
             param = rule().identifier(reserved);
             params_ = rule(typeof(ParameterList)).ast(param).repeat(rule().sep(",").ast(param));
             paramsList = rule().sep("(").maybe(params_).sep(")");
-            def = rule(typeof(DefStmnt)).sep("def").identifier(reserved).ast(paramsList).ast(block);
+            def = rule(typeof(DefStmnt)).sep("def").identifier(reserved).ast(paramsList).option(repeatEmptyLine).ast(block);
             args = rule(typeof(Arguments)).ast(expr).repeat(rule().sep(",").ast(expr));
             postfix = rule().sep("(").maybe(args).sep(")");
 

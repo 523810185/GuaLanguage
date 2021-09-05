@@ -21,8 +21,12 @@
 
         protected Parser program;
 
+        protected Parser repeatEmptyLine; // Add by zzy: 使得块代码的花括号不一定需要紧跟在上一行
+
         public BasicParser() 
         {
+            repeatEmptyLine = rule().SetName("repeatEmptyLine").repeat(rule().sep(Token.EOL));
+
             expr0 = rule();
             primary = rule(typeof(PrimaryExpr))
             .or(rule().sep("(").ast(expr0).sep(")"),
@@ -40,9 +44,9 @@
                 .sep("}");
             simple = rule(typeof(PrimaryExpr)).ast(expr);
             statement = statement0.or(
-                rule(typeof(IfStmnt)).sep("if").ast(expr).ast(block)
+                rule(typeof(IfStmnt)).sep("if").ast(expr).option(repeatEmptyLine).ast(block)
                     .option(rule().sep("else").ast(block)),
-                rule(typeof(WhileStmnt)).sep("while").ast(expr).ast(block),
+                rule(typeof(WhileStmnt)).sep("while").ast(expr).option(repeatEmptyLine).ast(block),
                 simple
             );
             program = rule().or(statement, rule(typeof(NullStmnt)))

@@ -342,7 +342,7 @@ public class TextEditorWindow : EditorWindow
             {
                 m_sRichTextBuilder.Append("\n");
             }
-            else if(text == "if" || text == "else" || text == "while") 
+            else if(text == "if" || text == "else" || text == "while" || text == "then" || text == "end") 
             {
                 Colorize(nowToken.getText(), FunctionClaimColor);
             }

@@ -43,9 +43,25 @@
                 .repeat(rule().sep(";", Token.EOL).option(statement0))
                 .sep("}");
             simple = rule(typeof(PrimaryExpr)).ast(expr);
+            /*
+                不能支持else之前有EOL。
+                因为else本身是个可选项，如果支持else之前可以有换行，那么由于LL(1)只预读一个字符，下面这种代码会有歧义而无法解析：
+                if (1) 
+                {
+                    __log("111");
+                }
+                
+                __log("222");
+                原因在于，当读了一个EOL以后，文法认为可以进入else块，但是实际上后面并没有else导致解析失败。
+                考虑使用Lua的if-then-else文法，有一个显式的end来指定if块的结束
+            */
             statement = statement0.or(
+                // rule(typeof(IfStmnt)).sep("if").ast(expr).option(repeatEmptyLine).ast(block)
+                //     .option(rule().sep("else").ast(block)),
                 rule(typeof(IfStmnt)).sep("if").ast(expr).option(repeatEmptyLine).ast(block)
-                    .option(rule().sep("else").ast(block)),
+                    .option(rule().SetName("elsePart").option(repeatEmptyLine).sep("else").option(repeatEmptyLine).ast(block)
+                    .option(repeatEmptyLine).sep("end")
+                    ),
                 rule(typeof(WhileStmnt)).sep("while").ast(expr).option(repeatEmptyLine).ast(block),
                 simple
             );

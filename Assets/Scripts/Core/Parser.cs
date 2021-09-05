@@ -402,6 +402,14 @@
 
         protected List<Element> elements;
         protected Func<object, ASTree> factory;
+        private const string DEFAULT_PARSER_NAME = "No Name";
+        public string name { get; private set;}
+
+        public Parser SetName(string name) 
+        {
+            this.name = name;
+            return this;
+        }
 
         public Parser(Type type) 
         {
@@ -454,6 +462,8 @@
         }
         public Parser reset(Type type) 
         {
+            SetName(type != null ? type.FullName : DEFAULT_PARSER_NAME);
+
             elements = new List<Element>();
             factory = Factory.getForASTList(type);
             return this;

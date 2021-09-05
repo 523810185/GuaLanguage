@@ -58,10 +58,16 @@
             statement = statement0.or(
                 // rule(typeof(IfStmnt)).sep("if").ast(expr).option(repeatEmptyLine).ast(block)
                 //     .option(rule().sep("else").ast(block)),
+                // 上面是最初的if
                 rule(typeof(IfStmnt)).sep("if").ast(expr).option(repeatEmptyLine).ast(block)
-                    .option(rule().SetName("elsePart").option(repeatEmptyLine).sep("else").option(repeatEmptyLine).ast(block)
-                    .option(repeatEmptyLine).sep("end")
-                    ),
+                    // .option(rule().SetName("elsePart").option(repeatEmptyLine).sep("else").option(repeatEmptyLine).ast(block)
+                    // .option(repeatEmptyLine).sep("end")
+                    // ),
+                    // 上面的 option(repeatEmptyLine) 会导致歧义，end前的EOL也会先进入elsePart中
+                    .option(repeatEmptyLine) // 这里需要抽出共同的部分，option(repeatEmptyLine)，以免直接进入elsePart
+                    .option(rule().SetName("elsePart").sep("else").option(repeatEmptyLine).ast(block).option(repeatEmptyLine)) // else的最后需要挂一个EOL，保证end可以换行，或者也可以直接在end前面挂一个EOL
+                    .sep("end")
+                ,
                 rule(typeof(WhileStmnt)).sep("while").ast(expr).option(repeatEmptyLine).ast(block),
                 simple
             );

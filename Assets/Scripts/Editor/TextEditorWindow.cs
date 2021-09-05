@@ -273,6 +273,21 @@ public class TextEditorWindow : EditorWindow
                     // Debug.Log("=> " + r);
                 }
             }
+
+            // 测试
+            // var bp = new TestParser();
+            // var env = new Natives().environment(new NestedEnv());
+            // while(l.peek(0) != Token.EOF) 
+            // {
+            //     var t = bp.parse(l);
+            //     if(!(t is NullStmnt))
+            //     {
+            //         var ttt = t.ToString();
+            //         Debug.Log(" bef eval = " + t.GetType() + t.ToString());
+            //         // var r = t.eval(env);
+            //         // Debug.Log("=> " + r);
+            //     }
+            // }
         }
 
         if(GUILayout.Button("高亮"))
